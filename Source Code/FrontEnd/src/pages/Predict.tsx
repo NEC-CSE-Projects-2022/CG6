@@ -111,10 +111,11 @@ const handleCSVSubmit = async (file: File) => {
       { message: 'Aggregating results...', delay: 2000 },
     ]);
 
-    let result = await predictFromCSV(file);
+    // Correctly send file to backend
+    const result = await predictFromCSV(file);
 
-    // Ensure predictions array exists and is properly formatted
-    if (!result.predictions || !Array.isArray(result.predictions) || result.predictions.length === 0) {
+    // Fallback if backend didn't return predictions
+    if (!result.predictions || result.predictions.length === 0) {
       result.predictions = Array.from({ length: 24 }, (_, hour) => ({
         hour,
         temperature: 0,
@@ -143,6 +144,7 @@ const handleCSVSubmit = async (file: File) => {
     setLoadingMessage('');
   }
 };
+
 
   return (
     <div className="min-h-screen pt-24 pb-16">

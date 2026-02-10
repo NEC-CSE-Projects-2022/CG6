@@ -122,7 +122,7 @@ export const predictFromCSV = async (file: File): Promise<PredictionResult> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await fetch(`${API_BASE_URL}/api/predict`, {
+  const res = await fetch(`${API_BASE_URL}/api/predict_csv`, {  // <-- use predict_csv
     method: 'POST',
     body: formData,
   });
@@ -147,6 +147,7 @@ export const predictFromCSV = async (file: File): Promise<PredictionResult> => {
     greenhouse_suitable: data.greenhouse_suitable,
   };
 };
+
 
 // -------------------------
 // Report Download

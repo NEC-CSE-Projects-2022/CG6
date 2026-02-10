@@ -157,6 +157,9 @@ def predict_manual():
 # -------------------------
 # CSV input endpoint
 # -------------------------
+# -------------------------
+# CSV input endpoint
+# -------------------------
 @app.route("/api/predict_csv", methods=["POST"])
 def predict_csv():
     try:
@@ -166,19 +169,36 @@ def predict_csv():
         file = request.files["file"]
         df = pd.read_csv(file)
 
-        required_cols = ["temperature", "humidity", "co2", "soil_moisture"]
-        for col in required_cols:
-            if col not in df.columns:
-                return jsonify({"success": False, "error": f"Missing column: {col}"}), 400
+        # Normalize column names (lowercase, strip spaces)
+        df.columns = [c.strip().lower() for c in df.columns]
 
+        # Map possible variations to expected names
+        col_mapping = {
+            "temperature": ["temperature", "temp", "temp_c", "t"],
+            "humidity": ["humidity", "hum", "h"],
+            "co2": ["co2", "cppm", "co₂"],
+            "soil_moisture": ["soil_moisture", "soilmoisture", "sm", "hr"]
+        }
+
+        # Check and rename columns
+        final_cols = {}
+        for standard, variants in col_mapping.items():
+            for v in variants:
+                if v in df.columns:
+                    final_cols[standard] = v
+                    break
+            if standard not in final_cols:
+                return jsonify({"success": False, "error": f"Missing column: {standard}"}), 400
+
+        # Build sequence for prediction
         sequence_rows = []
         for _, row in df.iterrows():
             sequence_rows.append([
-                row["co2"],             # Cppm
-                0,                      # Wind
-                row["soil_moisture"],   # HR
-                0,                      # Radiation
-                row["temperature"]      # Temp
+                row[final_cols["co2"]],           # Cppm
+                0,                                # Wind
+                row[final_cols["soil_moisture"]], # HR
+                0,                                # Radiation
+                row[final_cols["temperature"]]    # Temp
             ])
 
         sequence = np.array(sequence_rows, dtype=np.float32)
@@ -186,6 +206,7 @@ def predict_csv():
         return jsonify(result)
 
     except Exception as e:
+        print("❌ CSV processing error:", e)
         return jsonify({"success": False, "error": str(e)}), 500
 
 # -------------------------
