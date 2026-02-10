@@ -118,22 +118,27 @@ export const predictFromInput = async (input: PredictionInput): Promise<Predicti
 // -------------------------
 // CSV Prediction
 // -------------------------
+// -------------------------
+// CSV Prediction
+// -------------------------
 export const predictFromCSV = async (file: File): Promise<PredictionResult> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await fetch(`${API_BASE_URL}/api/predict_csv`, {  // <-- use predict_csv
+  const res = await fetch(`${API_BASE_URL}/api/predict_csv`, { 
     method: 'POST',
     body: formData,
   });
 
   const data = await res.json();
+
+  // ⚡ No extra validation here, trust backend
   if (!res.ok || !data.success) throw new Error(data.error || 'CSV prediction failed');
 
   return {
     success: true,
     predicted_temperature: data.predicted_temperature,
-    predicted_humidity: data.predicted_humidity,
+    predicted_humidity: data.predicted_humidity,  // backend sets this
     predicted_co2: data.predicted_co2,
     predicted_radiation: data.predicted_radiation,
     predicted_wind: data.predicted_wind,
