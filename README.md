@@ -1,82 +1,190 @@
+CG6 – AgriCastNet: A Unified Deep Forecasting Framework for Smart Greenhouse Microclimates
 
-# CG6 – AgriCastNet: A Unified Deep Forecasting Framework for Smart Greenhouse Microclimates
-## Team Info
-- 22471A05K1 — **Syed Tasneem Banu** ( [LinkedIn](https://linkedin.com/in/xxxxxxxxxx) )
-_Work Done: xxxxxxxxxx_
+👩‍💻 Team Information
+Roll No	Name	Work Contribution
+22471A05K1	Syed Tasneem Banu	Model design & implementation (CNN-BiLSTM, TCN, TFT), data preprocessing, performance evaluation, result analysis, paper drafting
+22471A05E7	B. Sailaja	Dataset analysis, PLSTM implementation, comparative study, experimentation support
+22471A05J2	Sk. Nazeera	XGBoost modeling, EDA visualization, metrics computation, documentation & validation
+🧠 Abstract
 
-- 22471A05E7 — **B. Sailaja** ( [LinkedIn](https://linkedin.com/in/xxxxxxxxxx) )
-_Work Done: xxxxxxxxxx_
+Greenhouse climate control has become critical due to increasing climate variability across agro-climatic zones. Existing forecasting models often lack fault tolerance, fail under sensor malfunction, and require heavy computational resources.
 
-- 22471A05J2 — **Sk. Nazeera** ( [LinkedIn](https://linkedin.com/in/xxxxxxxxxx) )
-_Work Done: xxxxxxxxxx_
+AgriCastNet proposes a fault-resilient deep learning framework using Climatic Influence Indicators (CII) integrated with advanced deep learning models to improve robustness, adaptability, and forecasting accuracy.
 
----
+A multivariate greenhouse dataset containing temperature, humidity, CO₂, radiation, and water uptake is used. The CII layer embeds temporal importance into the input signals, enabling reliable prediction even under sensor failure scenarios.
 
-## Abstract
-Greenhouse climate control is becoming increasingly important as climate variability increases, especially in various agro-climatic zones. However, fault tolerance is often a problem, especially in current models that tend to fail because they are sensitive to sensor failure, lack generalization ability, and have extremely high computing requirements. This study proposed a forecasting framework to improve fault tolerance and adaptive learning capabilities by incorporating Climatic Influence Indicators (CII), incorporated with more complex deep learning models, to accurately and rapidly forecast the greenhouse micro-climate. We utilized a multivariate greenhouse dataset, which consisted of temperature, humidity, CO₂ levels, radiation, and water uptake. The CII layer uses embedded temporal importance from input signals in order to improve the reliability of the model in the event of a sensor failure. A review of literature saw research performed on LSTM, GRU models; however, very few papers approached the dual problems of fault tolerance and ease of deployment. Results suggest some mildly successful outcomes, including TCN: 98.89%, PLSTM: 94.86%, XGBoost: 99.59% TFT: 98.16% and CNN + BiLSTM: 99.67%.
+Extensive experiments across multiple models demonstrate strong performance, with CNN-BiLSTM achieving the highest accuracy of 99.67%, proving AgriCastNet’s effectiveness for smart greenhouse microclimate forecasting.
 
----
+📄 Paper Reference (Inspiration)
 
-## Paper Reference (Inspiration)
-👉 **[Paper Title xxxxxxxxxx
-  – Author Names xxxxxxxxxx
- ](Paper URL here)**
-Original conference/IEEE paper used as inspiration for the model.
+Deep Learning Innovations for Greenhouse Climate Prediction: Insights from a Spanish Case Study
+Salma Ait Oussous et al., IEEE Access, 2025
+🔗 https://ieeexplore.ieee.org/document/10960464
 
----
+🚀 Our Improvement Over Existing Paper
 
-## Our Improvement Over Existing Paper
-xxxxxxxxxx
+Compared to the base paper, AgriCastNet introduces several major advancements:
 
----
+✅ Climatic Influence Indicators (CII) for sensor fault tolerance
 
-## About the Project
-Give a simple explanation of:
-- What your project does
-- Why it is useful
-- General project workflow (input → processing → model → output)
+✅ Multi-model comparative framework (CNN-BiLSTM, TCN, TFT, PLSTM, XGBoost)
 
----
+✅ Cross-agro-climatic generalization instead of a single climate zone
 
-## Dataset Used
-👉 **[Dataset Name](Dataset URL)**
+✅ 5-Fold Cross-Validation for realistic performance evaluation
 
-**Dataset Details:**
-xxxxxxxxxx
+✅ Deployment-oriented design suitable for real-world greenhouse systems
 
----
+🌿 About the Project
+🔹 What the Project Does
 
-## Dependencies Used
-xxxxxxxxxx, xxxxxxxxxx, xxxxxxxxxx ...
+AgriCastNet predicts greenhouse microclimate parameters such as:
 
----
+Temperature
 
-## EDA & Preprocessing
-xxxxxxxxxx
+Humidity
 
----
+CO₂ concentration
 
-## Model Training Info
-xxxxxxxxxx
+Solar radiation
 
----
+using deep learning models that remain accurate even when sensor data is faulty or missing.
 
-## Model Testing / Evaluation
-xxxxxxxxxx
+🔹 Why It Is Useful
 
----
+Helps farmers maintain optimal crop conditions
 
-## Results
-xxxxxxxxxx
+Reduces losses caused by sensor failure
 
----
+Supports smart agriculture & automation
 
-## Limitations & Future Work
-xxxxxxxxxx
+Scalable across multiple agro-climatic zones
 
----
+🔹 Project Workflow
+Sensor Data → Preprocessing → CII Layer → Deep Learning Model → Climate Forecast Output
 
-## Deployment Info
-xxxxxxxxxx
+📊 Dataset Used
 
----
+Spanish & Mexican Greenhouse Climate Dataset
+🔗 https://zenodo.org/records/6697044
+
+Dataset Details
+
+Internal & external temperature
+
+Internal & external humidity
+
+CO₂ concentration
+
+Solar radiation
+
+Dew point (computed where missing)
+
+High-resolution multivariate time-series data
+
+🛠️ Dependencies Used
+
+Python
+
+NumPy
+
+Pandas
+
+Matplotlib / Seaborn
+
+Scikit-learn
+
+TensorFlow / Keras
+
+XGBoost
+
+Google Colab
+
+🔍 EDA & Preprocessing
+
+Missing value handling using temporal interpolation
+
+Dew point computation via standard atmospheric equations
+
+Feature normalization for stable training
+
+Correlation heatmap analysis (before & after preprocessing)
+
+Overfitting prevention using dropout & regularization
+
+🧪 Model Training Information
+
+Train/Test Split: 80 : 20
+
+Cross-Validation: 5-Fold
+
+Epochs: 30
+
+Batch Size: 16 – 64
+
+Optimizer: Adam
+
+Hyperparameter tuning via Bayesian Optimization
+
+📈 Model Testing & Evaluation
+Models Implemented
+
+CNN-BiLSTM
+
+Temporal Convolutional Network (TCN)
+
+Temporal Fusion Transformer (TFT)
+
+Pyramidal LSTM (PLSTM)
+
+XGBoost
+
+Evaluation Metrics
+
+Accuracy
+
+R² Score
+
+RMSE
+
+MAE
+
+🏆 Results
+Model	Accuracy
+CNN-BiLSTM	99.67%
+XGBoost	99.59%
+TCN	98.89%
+TFT	98.16%
+PLSTM	94.86%
+
+✔ CNN-BiLSTM achieved the best overall performance, demonstrating superior spatio-temporal learning and fault tolerance.
+
+⚠️ Limitations & Future Work
+Current Limitations
+
+Computationally intensive for edge devices
+
+No real-time IoT deployment yet
+
+Future Enhancements
+
+🔹 Multi-class risk prediction (Normal / Warning / Alert)
+
+🔹 Model stacking & ensemble voting
+
+🔹 Explainable AI (SHAP / LIME)
+
+🔹 IoT & edge deployment using TensorFlow Lite / ONNX
+
+🌐 Deployment Information
+
+Development Environment: Windows
+
+Training Platform: Google Colab
+
+Future Deployment: IoT-based greenhouse automation systems
+
+📜 License
+
+This project is intended for academic and research purposes.
+All rights reserved to the authors.
