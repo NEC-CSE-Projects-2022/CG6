@@ -1,0 +1,59 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# Python
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+
+# Node (if used)
+node_modules/
+
+# React build (if built locally)
+build/
+dist/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# Python
+venv/
+backend/venv/
+
+# Build
+dist/
+build/
+# Python virtual environment
+venv/
+backend/venv/
+
+# Python cache
+__pycache__/
+*.pyc
