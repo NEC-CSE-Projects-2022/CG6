@@ -1,7 +1,4 @@
 
-=======
-
->>>>>>> c93a40bb (final)
 # CG6 – AgriCastNet: A Unified Deep Forecasting Framework for Smart Greenhouse Microclimates
 ## Team Info
 - 22471A05K1 — **Syed Tasneem Banu** ( [LinkedIn](https://linkedin.com/in/xxxxxxxxxx) )
