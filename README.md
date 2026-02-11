@@ -18,7 +18,7 @@ Greenhouse climate control is becoming increasingly important as climate variabi
 ---
 
 ## Paper Reference (Inspiration)
-<<<<<<< HEAD
+
 👉 **Deep Learning Innovations for Greenhouse Climate Prediction: Insights from a Spanish Case Study –
 Salma Ait Oussous et al. IEEE Access, 2025((https://ieeexplore.ieee.org/document/10960464))**
 
@@ -112,68 +112,3 @@ Development Environment: Windows
 
 Training Platform: Google Colab
 
-Target Deployment: Smart Greenhouse IoT Systems
-=======
-👉 **[Paper Title xxxxxxxxxx
-  – Author Names xxxxxxxxxx
- ](Paper URL here)**
-Original conference/IEEE paper used as inspiration for the model.
-
----
-
-## Our Improvement Over Existing Paper
-xxxxxxxxxx
-
----
-
-## About the Project
-Give a simple explanation of:
-- What your project does
-- Why it is useful
-- General project workflow (input → processing → model → output)
-
----
-
-## Dataset Used
-👉 **[Dataset Name](Dataset URL)**
-
-**Dataset Details:**
-xxxxxxxxxx
-
----
-
-## Dependencies Used
-xxxxxxxxxx, xxxxxxxxxx, xxxxxxxxxx ...
-
----
-
-## EDA & Preprocessing
-xxxxxxxxxx
-
----
-
-## Model Training Info
-xxxxxxxxxx
-
----
-
-## Model Testing / Evaluation
-xxxxxxxxxx
-
----
-
-## Results
-xxxxxxxxxx
-
----
-
-## Limitations & Future Work
-xxxxxxxxxx
-
----
-
-## Deployment Info
->>>>>>> c93a40bb (final)
-xxxxxxxxxx
-
----
