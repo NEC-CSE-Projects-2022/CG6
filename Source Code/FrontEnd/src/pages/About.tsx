@@ -1,41 +1,48 @@
-import { 
-  Leaf, 
-  Brain, 
-  Database, 
-  Cpu, 
-  BarChart3, 
-  Shield, 
-  Zap, 
+import {
+  Leaf,
+  Brain,
+  Database,
+  Cpu,
+  BarChart3,
+  Shield,
+  Zap,
   Globe,
   Thermometer,
   Droplets,
   Wind,
-  Clock
+  Clock,
 } from 'lucide-react';
 import aboutBg from '@/assets/about-bg.jpg';
 
 const About = () => {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative py-32 overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src={aboutBg}
-            alt="Agricultural technology"
-            className="w-full h-full object-cover opacity-20"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/90 to-background" />
-        </div>
-        <div className="relative z-10 container-width px-4 md:px-8 text-center">
-          <h1 className="font-display text-4xl md:text-5xl font-bold mb-6">
-            About <span className="gradient-text">AgriCastNet</span>
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            A Unified Deep Forecasting Framework for Smart Greenhouse Microclimates
-          </p>
-        </div>
-      </section>
+    <div
+      className="min-h-screen bg-cover bg-center bg-fixed relative"
+      style={{
+        backgroundImage: `url(${aboutBg})`,
+      }}
+    >
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+
+      {/* Content Wrapper */}
+      <div className="relative z-10">
+
+        {/* Hero Section */}
+        <section className="py-32 text-center text-white">
+          <div className="container-width px-4 md:px-8">
+            <h1 className="font-display text-4xl md:text-5xl font-bold mb-6">
+              About <span className="text-green-400">AgriCastNet</span>
+            </h1>
+            <p className="text-xl max-w-3xl mx-auto text-white/80">
+              A Unified Deep Forecasting Framework for Smart Greenhouse
+              Microclimates
+            </p>
+          </div>
+        </section>
+
+        {/* Rest of Your Sections */}
+        <div className="bg-background">
 
       {/* What is AgriCastNet */}
       <section className="section-padding bg-muted/30">
@@ -306,6 +313,8 @@ const About = () => {
           </div>
         </div>
       </section>
+    </div>
+    </div>
     </div>
   );
 };

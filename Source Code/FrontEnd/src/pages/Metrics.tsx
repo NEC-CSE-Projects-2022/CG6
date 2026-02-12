@@ -1,242 +1,207 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Thermometer, Droplets, Wind, Leaf, ArrowLeft, Info } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  Thermometer,
+  Droplets,
+  Wind,
+  Leaf,
+  ArrowLeft,
+  ShieldCheck,
+  AlertTriangle,
+  TrendingUp,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MetricRangeChart from '@/components/charts/MetricRangeChart';
 import PredictionChart from '@/components/charts/PredictionChart';
 import type { PredictionResult, HourlyPrediction } from '@/lib/api';
 
-// Metric configuration
-const metricRanges = [
-  {
-    key: 'temperature',
+type MetricStats = {
+  min: number;
+  max: number;
+  avg: number;
+  trend: string;
+};
+
+const metricConfig = {
+  temperature: {
     title: 'Temperature',
     icon: Thermometer,
     unit: '°C',
-    min: -10,
-    max: 60,
     optimalMin: 20,
     optimalMax: 28,
     warningMin: 10,
     warningMax: 35,
-    description:
-      'Optimal temperature range for most greenhouse crops. Higher temperatures can cause heat stress, while lower temperatures slow growth.',
-    zones: [
-      { range: '-10°C to 10°C', label: 'Danger', color: 'bg-danger/20 text-danger' },
-      { range: '10°C to 20°C', label: 'Warning', color: 'bg-warning/20 text-warning' },
-      { range: '20°C to 28°C', label: 'Optimal', color: 'bg-success/20 text-success' },
-      { range: '28°C to 35°C', label: 'Warning', color: 'bg-warning/20 text-warning' },
-      { range: '35°C to 60°C', label: 'Danger', color: 'bg-danger/20 text-danger' },
-    ],
+    min: 0,
+    max: 50,
   },
-  {
-    key: 'humidity',
+  humidity: {
     title: 'Humidity',
     icon: Droplets,
     unit: '%',
-    min: 0,
-    max: 100,
     optimalMin: 50,
     optimalMax: 70,
     warningMin: 35,
     warningMax: 85,
-    description:
-      'Relative humidity affects transpiration and disease pressure. High humidity promotes fungal growth, while low humidity causes plant stress.',
-    zones: [
-      { range: '0% to 35%', label: 'Danger', color: 'bg-danger/20 text-danger' },
-      { range: '35% to 50%', label: 'Warning', color: 'bg-warning/20 text-warning' },
-      { range: '50% to 70%', label: 'Optimal', color: 'bg-success/20 text-success' },
-      { range: '70% to 85%', label: 'Warning', color: 'bg-warning/20 text-warning' },
-      { range: '85% to 100%', label: 'Danger', color: 'bg-danger/20 text-danger' },
-    ],
+    min: 0,
+    max: 100,
   },
-  {
-    key: 'co2',
+  co2: {
     title: 'CO₂ Level',
     icon: Wind,
     unit: 'ppm',
-    min: 250,
-    max: 3000,
     optimalMin: 600,
     optimalMax: 1200,
     warningMin: 400,
     warningMax: 2000,
-    description:
-      'CO₂ enrichment enhances photosynthesis and growth. Levels above 2000 ppm may indicate poor ventilation.',
-    zones: [
-      { range: '250 to 400 ppm', label: 'Low', color: 'bg-warning/20 text-warning' },
-      { range: '400 to 600 ppm', label: 'Ambient', color: 'bg-muted text-muted-foreground' },
-      { range: '600 to 1200 ppm', label: 'Optimal', color: 'bg-success/20 text-success' },
-      { range: '1200 to 2000 ppm', label: 'Enriched', color: 'bg-warning/20 text-warning' },
-      { range: '2000+ ppm', label: 'Excessive', color: 'bg-danger/20 text-danger' },
-    ],
+    min: 300,
+    max: 2500,
   },
-  {
-    key: 'soil_moisture',
+  soil_moisture: {
     title: 'Soil Moisture',
     icon: Leaf,
     unit: '%',
-    min: 0,
-    max: 100,
     optimalMin: 40,
     optimalMax: 60,
     warningMin: 25,
     warningMax: 75,
-    description:
-      'Soil moisture directly affects water uptake and nutrient availability. Waterlogged conditions cause root rot, while dry soil leads to wilting.',
-    zones: [
-      { range: '0% to 25%', label: 'Dry', color: 'bg-danger/20 text-danger' },
-      { range: '25% to 40%', label: 'Low', color: 'bg-warning/20 text-warning' },
-      { range: '40% to 60%', label: 'Optimal', color: 'bg-success/20 text-success' },
-      { range: '60% to 75%', label: 'High', color: 'bg-warning/20 text-warning' },
-      { range: '75% to 100%', label: 'Saturated', color: 'bg-danger/20 text-danger' },
-    ],
+    min: 0,
+    max: 100,
   },
-];
+} as const;
 
 const Metrics = () => {
   const [predictions, setPredictions] = useState<HourlyPrediction[]>([]);
-  const [currentValues, setCurrentValues] = useState({
-    temperature: 0,
-    humidity: 0,
-    co2: 0,
-    soil_moisture: 0,
-  });
+  const [metrics, setMetrics] = useState<Record<string, MetricStats>>({});
+  const [riskLabel, setRiskLabel] = useState<'Low' | 'Moderate' | 'High'>('Low');
+  const [confidence, setConfidence] = useState(100);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load latest prediction and calculate averages
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const storedResult = sessionStorage.getItem('predictionResult');
-    if (storedResult) {
-      const result: PredictionResult = JSON.parse(storedResult);
+    const stored = sessionStorage.getItem('predictionResult');
 
-      if (result.predictions && result.predictions.length > 0) {
+    if (!stored) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const result: PredictionResult = JSON.parse(stored);
+
+      if (Array.isArray(result?.predictions)) {
         setPredictions(result.predictions);
-
-        const avg = (key: keyof HourlyPrediction) =>
-          result.predictions.reduce((sum, p) => sum + (p[key] as number), 0) /
-          result.predictions.length;
-
-        setCurrentValues({
-          temperature: avg('temperature'),
-          humidity: avg('humidity'),
-          co2: avg('co2'),
-          soil_moisture: avg('soil_moisture'),
-        });
       }
-    } else {
-      // fallback default data
-      const defaultData: HourlyPrediction[] = Array.from({ length: 24 }, (_, hour) => ({
-        hour,
-        temperature: 22 + Math.random() * 5,
-        humidity: 60 + Math.random() * 10,
-        co2: 700 + Math.random() * 200,
-        soil_moisture: 50 + Math.random() * 5,
-      }));
-      setPredictions(defaultData);
 
-      const avg = (key: keyof HourlyPrediction) =>
-        defaultData.reduce((sum, p) => sum + (p[key] as number), 0) / defaultData.length;
+      if (result?.metrics) {
+        setMetrics(result.metrics as unknown as Record<string, MetricStats>);
+      }
 
-      setCurrentValues({
-        temperature: avg('temperature'),
-        humidity: avg('humidity'),
-        co2: avg('co2'),
-        soil_moisture: avg('soil_moisture'),
-      });
+      setRiskLabel(result.risk_label || 'Low');
+      setConfidence(result.confidence || 100);
+      setRecommendations(result.recommendations || []);
+    } catch (err) {
+      console.error('Error parsing prediction result:', err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
+  const riskStyles = {
+    Low: 'bg-green-100 text-green-700 border-green-300',
+    Moderate: 'bg-yellow-100 text-yellow-700 border-yellow-300',
+    High: 'bg-red-100 text-red-700 border-red-300',
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-xl">
+        Loading metrics...
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-green-50 to-emerald-100">
       <div className="container-width px-4 md:px-8">
+
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Link to="/results">
+          <Link to="/predict">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
           <div>
-            <h1 className="font-display text-3xl md:text-4xl font-bold">
-              Detailed <span className="gradient-text">Metrics</span>
+            <h1 className="text-3xl md:text-4xl font-bold">
+              AgriCastNet <span className="text-green-600">Forecast Dashboard</span>
             </h1>
             <p className="text-muted-foreground">
-              Comprehensive breakdown of greenhouse parameters with optimal ranges
+              24-Hour Deep Learning Microclimate Forecast
             </p>
           </div>
         </div>
 
-        {/* Current Readings */}
-        <div className="glass-card p-6 mb-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Info className="w-5 h-5 text-secondary" />
-            <h2 className="font-display font-semibold text-lg">Current Readings</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {metricRanges.map(({ key, title, icon: Icon, unit }) => (
-              <div key={key} className="flex items-center gap-3 p-4 rounded-xl bg-muted/50">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Icon className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{title}</p>
-                  <p className="font-display font-semibold">
-                    {currentValues[key as keyof typeof currentValues].toFixed(1)} {unit}
-                  </p>
-                </div>
+        {/* Risk Banner */}
+        <div className={`p-5 rounded-2xl border mb-8 ${riskStyles[riskLabel]}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {riskLabel === 'Low' ? <ShieldCheck /> : <AlertTriangle />}
+              <div>
+                <p className="font-semibold text-lg">Risk Level: {riskLabel}</p>
+                <p className="text-sm">Model Confidence: {confidence}%</p>
               </div>
-            ))}
+            </div>
+            <TrendingUp className="w-8 h-8 opacity-40" />
           </div>
         </div>
 
-        {/* Range Charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {metricRanges.map(({ key, title, unit, min, max, optimalMin, optimalMax, warningMin, warningMax }) => (
-            <MetricRangeChart
-              key={key}
-              title={title}
-              value={currentValues[key as keyof typeof currentValues]}
-              unit={unit}
-              min={min}
-              max={max}
-              optimalMin={optimalMin}
-              optimalMax={optimalMax}
-              warningMin={warningMin}
-              warningMax={warningMax}
-            />
-          ))}
+        {/* Recommendations */}
+        {recommendations.length > 0 && (
+          <div className="bg-white rounded-2xl shadow p-6 mb-8">
+            <h2 className="font-semibold text-lg mb-4">
+              AI Recommendations 🌱
+            </h2>
+            <ul className="list-disc list-inside space-y-2 text-sm">
+              {recommendations.map((tip, i) => (
+                <li key={i}>{tip}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Metric Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+          {Object.entries(metricConfig).map(([key, config]) => {
+            const stat = metrics[key];
+            if (!stat) return null;
+
+            return (
+              <MetricRangeChart
+                key={key}
+                title={`${config.title} (${stat.trend})`}
+                value={stat.avg}
+                unit={config.unit}
+                optimalMin={config.optimalMin}
+                optimalMax={config.optimalMax}
+                warningMin={config.warningMin}
+                warningMax={config.warningMax}
+                min={config.min}
+                max={config.max}
+              />
+            );
+          })}
         </div>
 
-        {/* 24-Hour Trend */}
-        <div className="glass-card p-6 mb-8">
-          <h2 className="font-display font-semibold text-xl mb-6">24-Hour Trend Analysis</h2>
+        {/* Trend Chart */}
+        <div className="bg-white rounded-2xl shadow p-6">
+          <h2 className="font-semibold text-xl mb-6">
+            24-Hour Forecast Trend
+          </h2>
           <PredictionChart data={predictions} />
         </div>
 
-        {/* Metric Details */}
-        <div className="space-y-6">
-          {metricRanges.map(({ key, title, icon: Icon, description, zones }) => (
-            <div key={key} className="glass-card p-6">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <Icon className="w-6 h-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-display font-semibold text-lg mb-1">{title}</h3>
-                  <p className="text-muted-foreground text-sm">{description}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {zones.map(({ range, label, color }) => (
-                  <div key={range} className={`px-4 py-3 rounded-xl ${color} text-center`}>
-                    <p className="text-xs mb-1">{range}</p>
-                    <p className="font-semibold text-sm">{label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

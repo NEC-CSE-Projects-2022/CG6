@@ -77,21 +77,16 @@ export const predictFromInput = async (input: PredictionInput): Promise<Predicti
   const errors = validateInput(input);
   if (errors.length) throw new Error(errors.join('. '));
 
-  // Convert input → 10x5 sequence for Flask
-  const row = [
-    input.co2,           // Cppm
-    0,                   // Wind (if not in form)
-    input.soil_moisture, // HR
-    0,                   // Radiation
-    input.temperature,   // Temp
-  ];
-  const sequence = Array.from({ length: 10 }, () => row);
-
   const res = await fetch(`${API_BASE_URL}/api/predict`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sequence }),
-  });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    temperature: input.temperature,
+    humidity: input.humidity,
+    co2: input.co2,
+    soil_moisture: input.soil_moisture,
+  }),
+});
 
   const data = await res.json();
   if (!res.ok || !data.success) throw new Error(data.error || 'Prediction failed');
