@@ -127,21 +127,33 @@ const Metrics = () => {
       <div className="container-width px-4 md:px-8">
 
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link to="/predict">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold">
-              AgriCastNet <span className="text-green-600">Forecast Dashboard</span>
-            </h1>
-            <p className="text-muted-foreground">
-              24-Hour Deep Learning Microclimate Forecast
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Link to="/predict">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold">
+                AgriCastNet{" "}
+                <span className="text-green-600">Forecast Dashboard</span>
+              </h1>
+              <p className="text-muted-foreground">
+                24-Hour Deep Learning Microclimate Forecast
+              </p>
+            </div>
           </div>
+
+          {/* 👇 NEW SNAPSHOT BUTTON */}
+          <Button
+            onClick={() => navigate("/results")}
+            className="bg-green-600 hover:bg-green-700 text-white rounded-xl px-6"
+          >
+            Generate Executive Snapshot
+          </Button>
         </div>
+
 
         {/* Risk Banner */}
         <div className={`p-5 rounded-2xl border mb-8 ${riskStyles[riskLabel]}`}>

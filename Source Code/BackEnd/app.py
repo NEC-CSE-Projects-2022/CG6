@@ -91,10 +91,11 @@ def predict_sequence(sequence, soil_input, future_steps=24):
 
         pred_scaled = model.predict(scaled_seq, verbose=0)
 
-        # Use raw predictions for sequence update
-        raw_row = pred_scaled[0].copy()
+        # Inverse transform to real-world values
+        pred_unscaled = scaler.inverse_transform(pred_scaled)[0]
+        raw_row = pred_unscaled.copy()
 
-        # Clip for safe output
+        # Safe clipping
         predicted_co2 = float(np.clip(raw_row[0], 350, 2000))
         predicted_wind = float(np.clip(raw_row[1], 0, 20))
         predicted_humidity = float(np.clip(raw_row[2], 30, 90))
@@ -110,10 +111,28 @@ def predict_sequence(sequence, soil_input, future_steps=24):
             "soil_moisture": round(predicted_soil, 2)
         })
 
-        # Update sequence with raw values
+        # Update sequence for next prediction
         current_seq = np.vstack([current_seq[1:], raw_row])
 
-    # Metrics based on returned clipped predictions
+    # -------- Error Metrics (basic internal evaluation) --------
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+    true_vals = sequence[:, 0]  # using CO2 column
+    pred_vals = np.array([p["co2"] for p in predictions[:len(true_vals)]])
+
+    mae = float(mean_absolute_error(true_vals, pred_vals))
+    mse = float(mean_squared_error(true_vals, pred_vals))
+    rmse = float(np.sqrt(mse))
+    r2 = float(r2_score(true_vals, pred_vals))
+
+    error_metrics = {
+        "mae": round(mae, 3),
+        "rmse": round(rmse, 3),
+        "mse": round(mse, 3),
+        "r2": round(r2, 3)
+    }
+
+    # -------- Metrics Summary --------
     temps = [p["temperature"] for p in predictions]
     hums = [p["humidity"] for p in predictions]
     co2s = [p["co2"] for p in predictions]
@@ -132,12 +151,14 @@ def predict_sequence(sequence, soil_input, future_steps=24):
         metrics["co2"]["avg"],
         soil_input
     )
+
     confidence = max(0, 100 - risk)
 
     return {
         "success": True,
         "predictions": predictions,
         "metrics": metrics,
+        "error_metrics": error_metrics,
         "risk_score": int(risk),
         "risk_label": label,
         "confidence": int(confidence),
@@ -178,6 +199,8 @@ def predict_manual():
 def predict_csv():
     try:
         file = request.files["file"]
+        future_steps = int(request.form.get("forecast_horizon", 24))
+
         df = pd.read_csv(file)
         df.columns = [c.strip().lower() for c in df.columns]
 
@@ -185,16 +208,23 @@ def predict_csv():
         if not all(col in df.columns for col in required):
             return jsonify({"success": False, "error": "Invalid CSV format"}), 400
 
-        # Pad or repeat rows to match SEQUENCE_LENGTH if needed
         seq_rows = []
         for _, row in df.iterrows():
-            seq_rows.append([row["co2"], 2, row["humidity"], 200, row["temperature"]])
+            seq_rows.append([
+                row["co2"],
+                2,
+                row["humidity"],
+                200,
+                row["temperature"]
+            ])
+
         while len(seq_rows) < SEQUENCE_LENGTH:
             seq_rows.insert(0, seq_rows[0])
-        sequence = np.array(seq_rows[-SEQUENCE_LENGTH:])
 
+        sequence = np.array(seq_rows[-SEQUENCE_LENGTH:])
         soil_value = float(df["soil_moisture"].iloc[-1])
-        result = predict_sequence(sequence, soil_value)
+
+        result = predict_sequence(sequence, soil_value, future_steps)
         return jsonify(result)
 
     except Exception as e:

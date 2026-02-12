@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 import PredictionForm from '@/components/forms/PredictionForm';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
@@ -18,6 +17,21 @@ const tips = [
   'Regular predictions help identify patterns over time',
 ];
 
+interface NormalizedResponse {
+  predictions: any[];
+  metrics: Record<string, any>;
+  error_metrics: {
+    mae: number;
+    rmse: number;
+    mse: number;
+    r2: number;
+  };
+  risk_label: string;
+  confidence: number;
+  recommendations: string[];
+  risk_score: number;
+}
+
 const Predict = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -33,45 +47,25 @@ const Predict = () => {
     }
   };
 
-  // 🔥 Convert backend response to frontend format
-  const normalizeResponse = (response: any, input?: PredictionInput) => {
-  if (!response || response.success !== true) return null;
+  // ✅ Normalize backend response
+  const normalizeResponse = (response: any): NormalizedResponse | null => {
+    if (!response || response.success !== true) return null;
 
-  const temperature = input?.temperature ?? 0;
-  const humidity = input?.humidity ?? 0;
-  const co2 = input?.co2 ?? 0;
-  const soil = input?.soil_moisture ?? 0;
-
-  const generateMetric = (value: number) => ({
-    min: value,
-    max: value,
-    avg: value,
-    trend: "Stable",
-  });
-
-  return {
-    predictions: [
-      {
-        hour: 1,
-        temperature,
-        humidity,
-        co2,
-        soil_moisture: soil,
+    return {
+      predictions: response.predictions ?? [],
+      metrics: response.metrics ?? {},
+      error_metrics: response.error_metrics ?? {
+        mae: 0,
+        rmse: 0,
+        mse: 0,
+        r2: 0,
       },
-    ],
-    metrics: {
-      temperature: generateMetric(temperature),
-      humidity: generateMetric(humidity),
-      co2: generateMetric(co2),
-      soil_moisture: generateMetric(soil),
-    },
-    risk_label: response.risk_label || "Low",
-    confidence: response.confidence || 100,
-    recommendations: response.recommendations || [],
-    risk_score: response.risk_score || 0,
+      risk_label: response.risk_label ?? 'Low',
+      confidence: response.confidence ?? 100,
+      recommendations: response.recommendations ?? [],
+      risk_score: response.risk_score ?? 0,
+    };
   };
-};
-
 
   // 🌿 Manual Input
   const handleManualSubmit = async (data: PredictionInput) => {
@@ -87,9 +81,9 @@ const Predict = () => {
       ]);
 
       const apiResponse = await predictFromInput(data);
-      console.log("FULL API RESPONSE:", apiResponse);
+      console.log('FULL API RESPONSE:', apiResponse);
 
-      const normalized = normalizeResponse(apiResponse, data);
+      const normalized = normalizeResponse(apiResponse);
 
       if (!normalized) {
         throw new Error('Server returned invalid data');
@@ -111,7 +105,6 @@ const Predict = () => {
       });
 
       navigate('/metrics');
-
     } catch (err) {
       toast({
         variant: 'destructive',
@@ -135,11 +128,13 @@ const Predict = () => {
     try {
       const text = await file.text();
       const lines = text.trim().split('\n');
-      if (lines.length < 2)
+
+      if (lines.length < 2) {
         throw new Error('CSV must contain at least one data row.');
+      }
 
       const apiResponse = await predictFromCSV(file);
-      console.log("FULL API RESPONSE:", apiResponse);
+      console.log('FULL API RESPONSE:', apiResponse);
 
       const normalized = normalizeResponse(apiResponse);
 
@@ -163,7 +158,6 @@ const Predict = () => {
       });
 
       navigate('/metrics');
-
     } catch (err) {
       toast({
         variant: 'destructive',
@@ -202,6 +196,7 @@ const Predict = () => {
                 isLoading={isLoading}
               />
             )}
+            
           </div>
 
           <div className="space-y-6">
@@ -211,10 +206,22 @@ const Predict = () => {
                 Input Guidelines
               </h3>
               <ul className="space-y-3 text-sm">
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-success" /> Temperature: -10°C to 60°C</li>
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-success" /> Humidity: 0% to 100%</li>
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-success" /> CO₂: 250–5000 ppm</li>
-                <li className="flex gap-2"><CheckCircle2 className="w-4 h-4 text-success" /> Soil Moisture: 0%–100%</li>
+                <li className="flex gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  Temperature: -10°C to 60°C
+                </li>
+                <li className="flex gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  Humidity: 0% to 100%
+                </li>
+                <li className="flex gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  CO₂: 250–5000 ppm
+                </li>
+                <li className="flex gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  Soil Moisture: 0%–100%
+                </li>
               </ul>
             </div>
 
@@ -225,7 +232,9 @@ const Predict = () => {
               </h3>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 {tips.map((tip, i) => (
-                  <li key={i}>{i + 1}. {tip}</li>
+                  <li key={i}>
+                    {i + 1}. {tip}
+                  </li>
                 ))}
               </ul>
             </div>

@@ -79,219 +79,171 @@ const Results = () => {
 
   const metricCards = metrics
     ? [
-        {
-          title: 'Temperature',
-          icon: Thermometer,
-          unit: '°C',
-          value: metrics.temperature.avg,
-          min: metrics.temperature.min,
-          max: metrics.temperature.max,
-          trend: metrics.temperature.trend,
-        },
-        {
-          title: 'Humidity',
-          icon: Droplets,
-          unit: '%',
-          value: metrics.humidity.avg,
-          min: metrics.humidity.min,
-          max: metrics.humidity.max,
-          trend: metrics.humidity.trend,
-        },
-        {
-          title: 'CO₂ Level',
-          icon: Wind,
-          unit: 'ppm',
-          value: metrics.co2.avg,
-          min: metrics.co2.min,
-          max: metrics.co2.max,
-          trend: metrics.co2.trend,
-        },
-        {
-          title: 'Soil Moisture',
-          icon: Leaf,
-          unit: '%',
-          value: metrics.soil_moisture.avg,
-          min: metrics.soil_moisture.min,
-          max: metrics.soil_moisture.max,
-          trend: metrics.soil_moisture.trend,
-        },
-      ]
+      {
+        title: 'Temperature',
+        icon: Thermometer,
+        unit: '°C',
+        value: metrics.temperature.avg,
+        min: metrics.temperature.min,
+        max: metrics.temperature.max,
+        trend: metrics.temperature.trend,
+      },
+      {
+        title: 'Humidity',
+        icon: Droplets,
+        unit: '%',
+        value: metrics.humidity.avg,
+        min: metrics.humidity.min,
+        max: metrics.humidity.max,
+        trend: metrics.humidity.trend,
+      },
+      {
+        title: 'CO₂ Level',
+        icon: Wind,
+        unit: 'ppm',
+        value: metrics.co2.avg,
+        min: metrics.co2.min,
+        max: metrics.co2.max,
+        trend: metrics.co2.trend,
+      },
+      {
+        title: 'Soil Moisture',
+        icon: Leaf,
+        unit: '%',
+        value: metrics.soil_moisture.avg,
+        min: metrics.soil_moisture.min,
+        max: metrics.soil_moisture.max,
+        trend: metrics.soil_moisture.trend,
+      },
+    ]
     : [];
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="container-width px-4 md:px-8">
-        {/* Header */}
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10"
-        >
+    <div className="min-h-screen pt-24 pb-16 bg-gradient-to-br from-white to-emerald-50 print:bg-white print:pt-6">
+      <div className="container-width px-4 md:px-8 print:px-0">
+
+        {/* Executive Header */}
+        <div className="flex justify-between items-start mb-10 border-b pb-6 print:border-none">
           <div>
-            <h1 className="font-display text-3xl md:text-4xl font-bold mb-2">
-              Prediction <span className="gradient-text">Results</span>
+            <h1 className="text-4xl font-bold mb-2">
+              AgriCastNet Executive Snapshot
             </h1>
             <p className="text-muted-foreground">
-              24-hour greenhouse microclimate intelligence
+              AI Greenhouse Risk Assessment Report (24-Hour Forecast)
+            </p>
+            <p className="text-sm mt-2 text-muted-foreground">
+              Generated on: {new Date().toLocaleString()}
             </p>
           </div>
 
-          <div className="flex gap-3">
-            <Link to="/predict">
-              <Button variant="outline" className="gap-2">
-                <RefreshCw className="w-4 h-4" />
-                New Prediction
+          <div className="flex gap-3 print:hidden">
+            <Link to="/metrics">
+              <Button variant="outline">
+                Back to Dashboard
               </Button>
             </Link>
-            <Button className="btn-gradient gap-2">
-              <Download className="w-4 h-4" />
-              Download Report
+            <Button onClick={() => window.print()} className="btn-gradient">
+              <Download className="w-4 h-4 mr-2" />
+              Download PDF
             </Button>
           </div>
-        </motion.div>
-
-        {/* Risk + Recommendations */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            custom={1}
-            className="glass-card p-8 flex flex-col items-center justify-center"
-          >
-            <RiskGauge value={risk_score} label={risk_label} size="lg" />
-          </motion.div>
-
-          {/* AI Recommendations */}
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            custom={2}
-            className="lg:col-span-2 glass-card p-6 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-200/30 blur-3xl rounded-full" />
-
-            <h3 className="font-display font-semibold text-xl mb-2 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-500 animate-pulse" />
-              AI Climate Intelligence
-            </h3>
-
-            <p className="text-sm text-muted-foreground mb-6">
-              Your greenhouse survival blueprint for the next 24 hours 🌱
-            </p>
-
-            <div className="space-y-4">
-              {recommendations.map((rec, idx) => {
-                const lower = rec.toLowerCase();
-                const isOptimal =
-                  lower.includes('optimal') ||
-                  lower.includes('stable') ||
-                  lower.includes('good');
-                const isCritical =
-                  lower.includes('high') ||
-                  lower.includes('low') ||
-                  lower.includes('risk') ||
-                  lower.includes('critical');
-
-                const type = isOptimal
-                  ? 'optimal'
-                  : isCritical
-                  ? 'critical'
-                  : 'advisory';
-
-                const styles = {
-                  optimal:
-                    'border-emerald-400 bg-emerald-50 shadow-emerald-200/40',
-                  critical:
-                    'border-red-400 bg-red-50 shadow-red-200/40',
-                  advisory:
-                    'border-blue-400 bg-blue-50 shadow-blue-200/40',
-                };
-
-                const Icon =
-                  type === 'optimal'
-                    ? CheckCircle
-                    : type === 'critical'
-                    ? XCircle
-                    : Lightbulb;
-
-                return (
-                  <motion.div
-                    key={idx}
-                    variants={fadeUp}
-                    initial="hidden"
-                    animate="visible"
-                    custom={idx + 3}
-                    className={`p-5 rounded-2xl border shadow-lg backdrop-blur transition-all hover:scale-[1.02] ${styles[type]}`}
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="p-2 rounded-xl bg-white shadow">
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <p className="text-sm leading-relaxed font-medium">
-                        {rec}
-                      </p>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </motion.div>
         </div>
 
-        {/* Metric Cards */}
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={3}
-          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10"
-        >
-          {metricCards.map((m) => (
-            <MetricCard key={m.title} {...m} />
-          ))}
-        </motion.div>
+        {/* Executive Summary Card */}
+        <div className="bg-white shadow-xl rounded-3xl p-8 mb-10 border">
+          <h2 className="text-2xl font-semibold mb-6">
+            Executive Risk Summary
+          </h2>
 
-        {/* Chart */}
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={4}
-          className="glass-card p-6"
-        >
-          <div className="flex flex-wrap gap-2 mb-4">
-            {['temperature', 'humidity', 'co2', 'soil_moisture'].map((key) => (
-              <button
-                key={key}
-                onClick={() => toggleMetric(key)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium ${
-                  selectedMetrics.includes(key)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
-                }`}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+            <div>
+              <p className="text-sm text-muted-foreground">Risk Score</p>
+              <p className="text-3xl font-bold">{risk_score}/100</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">Risk Level</p>
+              <p className="text-3xl font-bold">{risk_label}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">Confidence</p>
+              <p className="text-3xl font-bold">{result.confidence}%</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Greenhouse Status
+              </p>
+              <p className="text-3xl font-bold">
+                {risk_label === 'Low'
+                  ? 'Optimal'
+                  : risk_label === 'Moderate'
+                    ? 'Caution'
+                    : 'Critical'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Current Conditions Snapshot */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+          {metricCards.map((m) => (
+            <div
+              key={m.title}
+              className="bg-white border rounded-2xl p-6 shadow"
+            >
+              <p className="text-sm text-muted-foreground mb-2">
+                {m.title}
+              </p>
+              <p className="text-3xl font-bold">
+                {m.value} {m.unit}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Min: {m.min} | Max: {m.max}
+              </p>
+              <p className="text-xs mt-1">
+                Trend: {m.trend}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* AI Recommendations */}
+        <div className="bg-white rounded-3xl shadow-xl p-8 mb-10 border">
+          <h2 className="text-xl font-semibold mb-6">
+            AI Strategic Recommendations
+          </h2>
+
+          <div className="space-y-4">
+            {recommendations.map((rec, idx) => (
+              <div
+                key={idx}
+                className="p-4 rounded-xl border bg-emerald-50"
               >
-                {key.replace('_', ' ').toUpperCase()}
-              </button>
+                {rec}
+              </div>
             ))}
           </div>
+        </div>
+
+        {/* Forecast Summary */}
+        <div className="bg-white rounded-3xl shadow-xl p-8 border">
+          <h2 className="text-xl font-semibold mb-6">
+            24-Hour Forecast Overview
+          </h2>
 
           {predictions.length > 0 ? (
-            <PredictionChart
-              data={predictions}
-              selectedMetrics={selectedMetrics}
-            />
+            <PredictionChart data={predictions} selectedMetrics={selectedMetrics} />
           ) : (
             <p className="text-muted-foreground">
-              No prediction data available.
+              No forecast data available.
             </p>
           )}
-        </motion.div>
+        </div>
+
       </div>
     </div>
   );
 };
-
 export default Results;
